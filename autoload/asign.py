@@ -2,6 +2,7 @@ import os
 import vim
 import subprocess
 import socket
+import time
 
 class AsignPlugin:
     def __init__(self):
@@ -12,6 +13,7 @@ class AsignPlugin:
     def Restart(self):
         if self.Running():
             self.Stop()
+            time.sleep(1)
         self.Start()
 
     def Start(self):
@@ -26,6 +28,7 @@ class AsignPlugin:
             s.connect(self.sock)
             s.send("stop")
             s.close()
+            os.remove(self.sock)
 
     def Running(self):
         if os.path.exists(self.sock):
