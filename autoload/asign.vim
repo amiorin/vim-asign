@@ -4,6 +4,14 @@ function! asign#Init()
     py asign_plugin = AsignPlugin()
 endfunction
 
-function! asign#ExitAndPrintStdout()
-    py asign_plugin.ExitAndPrintStdout()
+function! asign#Restart()
+    py asign_plugin.Restart()
+endfunction
+
+function! asign#Start()
+    py asign_plugin.Start()
+endfunction
+
+function! asign#Stop()
+    py asign_plugin.Stop()
 endfunction

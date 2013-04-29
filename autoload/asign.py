@@ -1,18 +1,42 @@
 import os
 import vim
 import subprocess
+import socket
 
 class AsignPlugin:
     def __init__(self):
-        vim.command("echom 'pid: {0}'".format(os.getpid()))
-        vim.command("echom 'cwd: {0}'".format(os.getcwd()))
-        vim.command("echom 'path: {0}'".format(os.path.split(vim.eval('fnameescape(globpath(&runtimepath, "autoload/asign.py"))'))[0]))
-        dir = os.path.split(vim.eval('fnameescape(globpath(&runtimepath, "autoload/asign.py"))'))[0]
-        os.chdir(dir)
-        echo = os.path.join(dir, "node", "echo.js")
-        self.process = subprocess.Popen("node {0}".format(echo), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # FIXME: windowns?
+        self.sock = "/tmp/asign.sock"
+        self.Start()
 
-    def ExitAndPrintStdout(self):
-        self.process.terminate()
-        for line in self.process.stdout.readlines():
-            vim.command("echom '{0}'".format(line.strip("\n")))
+    def Restart(self):
+        if self.Running():
+            self.Stop()
+        self.Start()
+
+    def Start(self):
+        if not self.Running():
+            dir = os.path.split(vim.eval('fnameescape(globpath(&runtimepath, "autoload/asign.py"))'))[0]
+            filename = os.path.join(dir, "node", "asign.js")
+            self.process = subprocess.Popen("node {0} {1}".format(filename, self.sock), shell=True)
+
+    def Stop(self):
+        if self.Running():
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.connect(self.sock)
+            s.send("stop")
+            s.close()
+
+    def Running(self):
+        if os.path.exists(self.sock):
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            try:
+                s.connect(self.sock)
+            except:
+                os.remove(self.sock)
+                return False
+            else:
+                s.close()
+                return True
+        else:
+            return False
